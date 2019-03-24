@@ -1,0 +1,25 @@
+# Create partition table
+part-init /dev/sda mbr
+
+# root
+part-add /dev/sda p 2048 -1
+part-set-bootable /dev/sda 1 true
+part-set-mbr-id /dev/sda 1 0x83
+
+# Format partition
+mkfs ext4 /dev/sda1 label:linux-root
+mount /dev/sda1 /
+
+# Extract ArchLinuxARM rootfs
+tar-in tmp/ArchLinuxARM-aarch64-latest.tar.gz / compress:gzip xattrs:true selinux:true acls:true
+
+# Copy in extlinux.conf
+mkdir /boot/extlinux
+copy-in config/extlinux.conf /boot/extlinux
+
+# Copy in uEnv.txt
+copy-in tmp/uEnv.txt /boot/uEnv.txt
+
+# Write bootloader
+copy-device-to-device /dev/sdb /dev/sda srcoffset:512 destoffset:512
+copy-device-to-device /dev/sdb /dev/sda size:444
