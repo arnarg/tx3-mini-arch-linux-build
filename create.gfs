@@ -18,7 +18,7 @@ mkdir /boot/extlinux
 copy-in config/extlinux.conf /boot/extlinux
 
 # Copy in uEnv.txt
-copy-in tmp/uEnv.txt /boot/uEnv.txt
+copy-in tmp/uEnv.txt /boot
 
 # Write bootloader
 copy-device-to-device /dev/sdb /dev/sda srcoffset:512 destoffset:512

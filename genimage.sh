@@ -10,14 +10,15 @@ fi
 mkdir -p out tmp
 
 MAC=$1
+RAM=$2
 
-# Skip extlinux.conf if already present
+# Skip uEnv.txt if already present
 if [[ ! -f "tmp/uEnv.txt" ]]
 then
     # Read from user input if no MAC address was provided as parameter
     if [[ -z "$MAC" ]]
     then
-        read -p "Enter MAC address of device []: " MAC
+        read -p "Enter MAC address of device [none]: " MAC
     fi
 
     # Insert MAC address into extlinux.conf if not empty
@@ -25,6 +26,19 @@ then
     then
         echo "ethaddr=$MAC" > tmp/uEnv.txt
     fi
+fi
+
+# Skip if u-boot is already present
+if [[ ! -f "tmp/u-boot-v2019.01-tx3-mini.bin" ]]
+then
+    # Read from user input if ram size wasn't provided as a parameter
+    if [[ -z "$RAM" ]]
+    then
+        read -p "Size of RAM in GiB [2]: " RAM
+    fi
+
+    # Extract fip dir
+    wget -O tmp/u-boot-v2019.01-tx3-mini.bin "https://github.com/arnarg/tx3-mini-uboot-build/releases/download/v2019.01/u-boot-v2019.01-tx3-mini-${RAM:-2}g.bin"
 fi
 
 # Only download rootfs if needed
@@ -35,6 +49,9 @@ then
 fi
 
 # Create image with guestfish
-guestfish -N out/ArchLinuxARM-tx3-mini.img=disk:2G -a bin/u-boot-v2019.01-tx3-mini.bin -f create.gfs -x
+guestfish -N out/ArchLinuxARM-tx3-mini.img=disk:2G -a tmp/u-boot-v2019.01-tx3-mini.bin -f create.gfs -x
 
-echo -en "\n\nImage is ready in out/ArchLinuxARM-tx3-mini.img\n"
+if [[ "$?" -eq 0 ]]
+then
+    echo -en "\n\nImage is ready in out/ArchLinuxARM-tx3-mini.img\n"
+fi
